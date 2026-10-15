@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getTransactions } from "../controllers/db_controller";
+import { authMiddleware } from "../middleware/auth_middleware";
 
 const router = Router()
 
@@ -10,7 +11,9 @@ const router = Router()
  *      tags:
  *          - Transactions
  *      summary: Получение всех транзакций
- *      description: возвращает список всех финансовых транзакций.
+ *      description: возвращает транзакции текущего пользователя. Требуется access toekn.
+ *      security:
+ *          - bearerAuth: []
  *      responses:
  *          200:
  *              description: Список транзакций успешно получен
@@ -20,10 +23,12 @@ const router = Router()
  *                          type: array
  *                          items:
  *                              $ref: '#/components/schemas/Transaction'
+ *          '401':
+ *              description: Отсутствует или недействителен access token
  *          500:
- *              description: Ошибка сервера 
+ *              description: Ошибка при получении транзакций
  */
 
-router.get("/", getTransactions);
+router.get("/", authMiddleware, getTransactions);
 
 export default router;
