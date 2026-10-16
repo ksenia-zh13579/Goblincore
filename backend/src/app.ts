@@ -1,9 +1,10 @@
 import express from "express";
-import db_rote from "./routes/db_rote";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth_routes";
+import profileRoutes from "./routes/user_routes";
+import transactionRoutes from "./routes/transactions_routes";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/transactions", db_rote);
+app.use("/api/profile", profileRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 export default app;

@@ -33,6 +33,7 @@ const options: swaggerJSDoc.Options = {
             schemas: {
                 ErrorResponse: {
                     type: "object",
+                    required: ["message"],
                     properties: {
                         message: {
                             type: "string",
@@ -97,6 +98,25 @@ const options: swaggerJSDoc.Options = {
                         },
                     },
                 },
+                UpdateProfileRequest: {
+                    type: "object",
+                    properties: {
+                        username: {
+                            type: "string",
+                            example: "new_user_user",
+                        },
+                        email: {
+                            type: "string",
+                            format: "email",
+                            example: "alex@example.com",
+                        },
+                        password: {
+                            type: "string",
+                            format: "password",
+                            example: "LoLKek1345",
+                        },
+                    },
+                },
                 AuthResponse: {
                     type: "object",
                     properties: {
@@ -131,6 +151,19 @@ const options: swaggerJSDoc.Options = {
                 },
                 Transaction: {
                     type: "object",
+                    required: [
+                        "transaction_id",
+                        "user_id",
+                        "category_id",
+                        "category_name",
+                        "amount",
+                        "comment",
+                        "transaction_date",
+                        "place_id",
+                        "place_name",
+                        "type",
+                        "created_at",
+                    ],
                     properties: {
                         transaction_id : {
                             type: "string",
@@ -144,9 +177,12 @@ const options: swaggerJSDoc.Options = {
                             type: "string",
                             example: "3",
                         },
+                        category_name: {
+                            type: "string",
+                            example: "Продукты"
+                        },
                         amount: {
                             type: "string",
-                            description: "Сумма NUMERIC(12, 2)",
                             example: "2500.00",
                         },
                         comment: {
@@ -157,12 +193,17 @@ const options: swaggerJSDoc.Options = {
                         transaction_date: {
                             type: "string",
                             format: "date",
-                            example: "2026-10-14",
+                            example: "2026-10-14T00:00:00.000Z",
                         },
                         place_id: {
                             type: "string",
                             nullable: true,
                             example: "2",
+                        },
+                        place_name: {
+                            type: "string",
+                            nullable: true,
+                            example: "Пятерочка"
                         },
                         type: {
                             type: "string",
@@ -172,6 +213,124 @@ const options: swaggerJSDoc.Options = {
                         created_at: {
                             type: "string",
                             format: "date-time",
+                            example: "2026-10-11T12:00:00.000Z",
+                        },
+                    },
+                },
+                CreateTransactionRequest: {
+                    type: "object",
+                    required: [
+                        "category_name",
+                        "amount",
+                        "transaction_date",
+                        "type,"
+                    ],
+                    properties: {
+                        category_name: {
+                            type: "string",
+                            maxLength: 100,
+                            example: "Продукты",
+                        },
+                        category_limit: {
+                            type: "string",
+                            pattern: "^[0-9]{1,10}(\\.[0-9]{1,2})?$",
+                            example: "150000.00",
+                            description:
+                                "Обязателен при создании новой категории расходов. Для существующей категории не указывается.",
+                        },
+                        amount: {
+                            type: "string",
+                            pattern: "^[0-9]{1,10}(\\.[0-9]{1,2})?$",
+                            example: "1500.50",
+                        },
+                        comment: {
+                            type: "string",
+                            nullable: true,
+                            example: "Покупочки на июнь",
+                        },
+                        transaction_date: {
+                            type: "string",
+                            format: "date",
+                            example: "2026-10-15",
+                        },
+                        place_name: {
+                            type: "string",
+                            nullable: true,
+                            maxLength: 150,
+                            example: "Пятерочка",
+                        },
+                        type: {
+                            type: "string",
+                            enum: ["income", "expense"],
+                            example: "expense",
+                        },
+                    },
+                },
+                PatchTransactionRequest: {
+                    type: "object",
+                    properties: {
+                        category_name: {
+                            type: "string",
+                            maxLength: 100,
+                            example: "Аптеки",
+                        },
+                        category_limit: {
+                            type: "string",
+                            pattern: "^[0-9]{1,10}(\\.[0-9]{1,2})?$",
+                            example: "5000.00",
+                            description:
+                                "Указывается вместе с category_name только при создвнии новой категории расходов",
+                        },
+                        amount: {
+                            type: "string",
+                            pattern: "^[0-9]{1,10}(\\.[0-9]{1,2})?$",
+                            example: "2000.00",
+                        },
+                        comment: {
+                            type: "string",
+                            nullable: true,
+                            example: "Обновленный комментарий",
+                        },
+                        transaction_date: {
+                            type: "string",
+                            format: "date",
+                            example: "2026-10-16",
+                        },
+                        place_name: {
+                            type: "string",
+                            nullable: true,
+                            maxLength: 150,
+                            example: "Ozon",
+                            description:
+                                "Передайте null или пустую строку, чтобы убрать место из транзакции.",
+                        },
+                        type: {
+                            type: "string",
+                            enum: ["income", "expense"],
+                            example: "expense",
+                        },
+                    },
+                },
+                TransactionMutationResponse: {
+                    type: "object",
+                    required: ["message", "transaction"],
+                    properties: {
+                        message: {
+                            type: "string",
+                            example: "Транзакция успешно обновлена",
+                        },
+                        transaction: {
+                            $ref: '#/components/schemas/Transaction',
+                        },
+                    },
+                },
+                MessageResponse: {
+                    type: "object",
+                    required: ["message"],
+                    properties: {
+                        message: {
+                            type: "string",
+                            example: "Транзакция успешно удалена",
                         },
                     },
                 },
