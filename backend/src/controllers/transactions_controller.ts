@@ -1,88 +1,20 @@
 import type { Request, Response } from "express";
 import { prisma } from "../prisma";
+import { 
+    parsePositiveBigInt,
+    normalizeName,
+    isTransactionType,
+    parseAmount,
+    parseDateOnly,
+    CategoryTypeMismatchError,
+    CategoryLimitOnlyForNewCategoryError,
+    CategoryLimitRequiredError,
+    TransactionNotFoundError,
+    CategoryRequiredForTypeChangeError,
+    CategoryLimitNotAllowedForIncomeError
+} from "../services/type_and_parse_functions";
 
 type TransactionType = "income" | "expense";
-
-function parsePositiveBigIng(value: unknown): bigint | null {
-    if (typeof value !== "string" || !/^[1-9]\d*$/.test(value)) {
-        return null;
-    }
-
-    try {
-        return BigInt(value);
-    } catch {
-        return null;
-    }
-}
-
-function isTransactionType(value: unknown): value is TransactionType {
-    return value === "income" || value === "expense";
-}
-
-function normalizeName(
-    value: unknown,
-    maxLength: number
-): string | null {
-    if (typeof value !== "string") {
-        return null;
-    }
-
-    const name = value.trim();
-
-    if (!name || name.length > maxLength) {
-        return null;
-    }
-
-    return name;
-}
-
-function parseAmount(value: unknown): string | null {
-    if (typeof value !== "string" && typeof value !== "number") {
-        return null;
-    }
-
-    const amount = String(value).trim();
-
-    if (!/^\d{1,10}(?:\.\d{1,2})?$/.test(amount)) {
-        return null;
-    }
-
-    const [whole, fraction = ""] = amount.split(".");
-    const cents = BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0"));
-
-    if (cents <= 0n) {
-        return null;
-    }
-
-    return `${BigInt(whole).toString()}.${fraction.padEnd(2, "0")}`;
-}
-
-function parseDateOnly(value: unknown): Date | null {
-    if (
-        typeof value !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(value)
-    ) {
-        return null;
-    }
-
-    const date = new Date(`${value}T00:00:00.000Z`);
-
-    if (
-        Number.isNaN(date.getTime()) ||
-        date.toISOString().slice(0, 10) !== value
-    ) {
-        return null;
-    }
-
-    return date;
-}
-
-class CategoryTypeMismatchError extends Error {}
-class CategoryLimitRequiredError extends Error {}
-class CategoryLimitOnlyForNewCategoryError extends Error {}
-class CategoryLimitNotAllowedForIncomeError extends Error {}
-class TransactionNotFoundError extends Error {}
-class CategoryRequiredForTypeChangeError extends Error {}
 
 export async function getMyTransactions(
     req: Request,
@@ -95,7 +27,7 @@ export async function getMyTransactions(
             });
         }
 
-        const userId = parsePositiveBigIng(req.user.user_id);
+        const userId = parsePositiveBigInt(req.user.user_id);
 
         if (userId === null) {
             return res.status(401).json({
@@ -159,8 +91,8 @@ export async function getTransactionById(
             });
         }
 
-        const userId = parsePositiveBigIng(req.user.user_id);
-        const transactionId = parsePositiveBigIng(req.params.id);
+        const userId = parsePositiveBigInt(req.user.user_id);
+        const transactionId = parsePositiveBigInt(req.params.id);
 
         if (userId === null) {
             return res.status(401).json({
@@ -234,7 +166,7 @@ export async function addNewTransaction(
             });
         }
 
-        const userId = parsePositiveBigIng(req.user.user_id);
+        const userId = parsePositiveBigInt(req.user.user_id);
 
         if (userId === null) {
             return res.status(401).json({
@@ -482,8 +414,8 @@ export async function patchTransaction(
             });
         }
 
-        const userId = parsePositiveBigIng(req.user.user_id);
-        const transactionId = parsePositiveBigIng(req.params.id);
+        const userId = parsePositiveBigInt(req.user.user_id);
+        const transactionId = parsePositiveBigInt(req.params.id);
 
         if (userId === null) {
             return res.status(401).json({
@@ -854,8 +786,8 @@ export async function deleteTransaction(
             });
         }
 
-        const userId = parsePositiveBigIng(req.user.user_id);
-        const transactionId = parsePositiveBigIng(req.params.id);
+        const userId = parsePositiveBigInt(req.user.user_id);
+        const transactionId = parsePositiveBigInt(req.params.id);
 
         if (userId === null) {
             return res.status(401).json({

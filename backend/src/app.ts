@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth_routes";
 import profileRoutes from "./routes/user_routes";
 import transactionRoutes from "./routes/transactions_routes";
+import categoriesRoutes from "./routes/categories_routes";
 
 const app = express();
 
@@ -14,7 +15,6 @@ app.use(
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec)
 );
-app.use(cookieParser());
 
 app.get("/", (req, res) => {
     res.json({
@@ -22,8 +22,10 @@ app.get("/", (req, res) => {
     });
 });
 
+app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/categories", categoriesRoutes);
 
 export default app;
