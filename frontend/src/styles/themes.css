@@ -1,0 +1,90 @@
+/* ─────────────────────────────────────────────
+   Goblincore · палитра и токены темы
+   ───────────────────────────────────────────── */
+
+:root {
+  /* Фоны */
+  --bg:          #f6f3ee;
+  --bg-soft:     #efeae1;
+  --bg-elev:     #ffffff;
+  --bg-hover:    #f2eee7;
+
+  /* Текст */
+  --text:        #1c1a17;
+  --text-muted:  #7a7166;
+  --text-faint:  #a89b8a;
+
+  /* Границы */
+  --border:      #e5ddd0;
+  --border-soft: #efe8dc;
+
+  /* Акценты */
+  --primary:        #2f7a55;
+  --primary-hover:  #266746;
+  --primary-soft:   #e4f1e9;
+  --primary-glow:   rgba(47, 122, 85, 0.18);
+
+  --danger:        #c0392b;
+  --danger-hover:  #a5301f;
+  --danger-soft:   #fbeae7;
+
+  --income:        #2f8b5c;
+  --income-soft:   #e4f2ea;
+  --expense:       #c14a3b;
+  --expense-soft:  #fbe9e6;
+
+  --warning:       #c98a2b;
+  --warning-soft:  #fbf1de;
+
+  /* Тени */
+  --shadow-sm:  0 1px 2px rgba(28, 26, 23, 0.06);
+  --shadow:     0 2px 8px rgba(28, 26, 23, 0.06), 0 1px 2px rgba(28, 26, 23, 0.04);
+  --shadow-md:  0 8px 24px rgba(28, 26, 23, 0.08), 0 2px 6px rgba(28, 26, 23, 0.04);
+  --shadow-lg:  0 24px 48px rgba(28, 26, 23, 0.16), 0 8px 16px rgba(28, 26, 23, 0.08);
+
+  /* Скругления */
+  --radius-sm: 8px;
+  --radius:    12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Анимации */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur:  0.18s;
+}
+
+[data-theme='dark'] {
+  --bg:          #14120f;
+  --bg-soft:     #1b1815;
+  --bg-elev:     #1f1c18;
+  --bg-hover:    #262220;
+
+  --text:        #ece5da;
+  --text-muted:  #a89b8a;
+  --text-faint:  #6b6257;
+
+  --border:      #2f2922;
+  --border-soft: #262018;
+
+  --primary:        #6dc89a;
+  --primary-hover:  #86d6ac;
+  --primary-soft:   #1d2a24;
+  --primary-glow:   rgba(109, 200, 154, 0.22);
+
+  --danger:        #e57373;
+  --danger-hover:  #ef8a8a;
+  --danger-soft:   #2e1c1c;
+
+  --income:        #7bd389;
+  --income-soft:   #1a2820;
+  --expense:       #e57373;
+  --expense-soft:  #2e1c1c;
+
+  --warning:       #e0b25c;
+  --warning-soft:  #2b2418;
+
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow:     0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:  0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg:  0 24px 48px rgba(0, 0, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.4);
+}

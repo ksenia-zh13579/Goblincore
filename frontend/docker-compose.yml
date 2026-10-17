@@ -1,0 +1,10 @@
+services:
+  frontend:
+    build: .
+    ports:
+      - "5175:5173"   # хост:контейнер — снаружи 5175, внутри 5173
+    volumes:
+      - .:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
