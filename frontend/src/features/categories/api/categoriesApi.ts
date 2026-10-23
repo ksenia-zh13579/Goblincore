@@ -2,18 +2,42 @@ import { api } from '../../../shared/api/client';
 import { TransactionType } from '../../transactions/api/transactionsApi';
 
 export interface Category {
-  category_id: string;
+  category_id: number;
   name: string;
-  limit?: number | string | null;
+  category_type: TransactionType;
+  category_limit?: string | number; // Бэкенд возвращает лимит строкой
+}
+
+export interface CategoryPayload {
+  name: string;
+  category_type: TransactionType;
+  category_limit?: string; // Для расходов обязателен!
 }
 
 export const categoriesApi = {
-  list: (type: TransactionType, _userId: string) =>
-    api.get<Category[]>('/transactions/categories', { params: { type } }),
+  // Получаем список с фильтром по типу (бэкенд поддерживает ?type=expense)
+  list: (type: TransactionType, userId?: number) =>
+    api.get<Category[]>('/api/categories', {
+      params: { type } // Передаем ?type=income или ?type=expense
+    }),
+
+  // Создание категории
   create: (type: TransactionType, data: { name: string; limit?: number }) =>
-    api.post<Category>('/transactions/categories', { ...data, type }),
-  update: (type: TransactionType, id: string, data: { name: string; limit?: number }) =>
-    api.patch<Category>(`/transactions/categories/${id}`, { ...data, type }),
-  remove: (_type: TransactionType, id: string, _userId: string) =>
-    api.delete(`/transactions/categories/${id}`),
+    api.post<Category>('/api/categories', {
+      name: data.name,
+      category_type: type,
+      // Если это расход, передаем лимит. Бэкенд требует его для новых категорий расходов.
+      ...(type === 'expense' && data.limit ? { category_limit: String(data.limit) } : {})
+    }),
+
+  // Обновление категории (тип менять нельзя)
+  update: (type: TransactionType, id: number, data: { name: string; limit?: number }) =>
+    api.patch<Category>(`/api/categories/${id}`, {
+      name: data.name,
+      ...(type === 'expense' && data.limit ? { category_limit: String(data.limit) } : {})
+    }),
+
+  // Удаление категории
+  remove: (type: TransactionType, id: number, userId?: number) =>
+    api.delete(`/api/categories/${id}`),
 };

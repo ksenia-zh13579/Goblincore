@@ -15,10 +15,10 @@ export function RegisterPage() {
     e.preventDefault();
     setError(null);
     try {
-      await authApi.register({ username, email, password });
+      await authApi.register({ username, email, password: password });
       navigate('/login');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка регистрации');
+      setError(err.response?.data?.detail || 'Ошибка регистрации');
     }
   };
 
