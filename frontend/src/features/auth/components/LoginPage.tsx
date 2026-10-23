@@ -8,7 +8,9 @@ import { Button } from '../../../shared/ui/Button';
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  
+  // Меняем username на email, так как бэкенд ждет email
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,15 +20,22 @@ export function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const { data } = await authApi.login(username, password);
+      const { data } = await authApi.login(email, password);
+      
+      // Сохраняем данные пользователя и токен
       login(
-        { user_id: data.user_id, username: data.username, email: data.email },
-        data.access_token,
-        data.refresh_token
+        { 
+          user_id: Number(data.user.user_id), 
+          username: data.user.username, 
+          email: data.user.email 
+        },
+        data.accessToken, 
+        '' // refreshToken хранится в httpOnly cookie, в localStorage его не кладем
       );
       navigate('/transactions/expense');
-    } catch {
-      setError('Неверный логин или пароль');
+    } catch (err: any) {
+      // Показываем ошибку от бэкенда (например, "Неверный email или пароль")
+      setError(err.response?.data?.message || 'Ошибка входа');
     } finally {
       setLoading(false);
     }
@@ -37,10 +46,12 @@ export function LoginPage() {
       <form className="auth-card" onSubmit={onSubmit}>
         <h1 className="auth-card__title">Goblincore</h1>
         <p className="auth-card__subtitle">Вход в трекер финансов</p>
+        
         <Input
-          label="Имя пользователя"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <Input
@@ -50,6 +61,7 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        
         {error && <p className="form-error">{error}</p>}
         <Button type="submit" disabled={loading}>
           {loading ? 'Входим…' : 'Войти'}

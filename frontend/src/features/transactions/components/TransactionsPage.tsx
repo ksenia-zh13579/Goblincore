@@ -131,18 +131,18 @@ export function TransactionsPage() {
         onClose={() => { setModalOpen(false); setEditing(null); }}
       >
         <TransactionForm
-          userId={user!.user_id}
-          categories={categories}
-          initial={editing ? {
-            amount: editing.amount,
-            category_id: categories.find((c) => c.name === editing.category_name)?.category_id,
-            place_id: undefined,
-            transaction_datetime: editing.transaction_datetime,
-            comment: editing.comment,
-          } : undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => { setModalOpen(false); setEditing(null); }}
-        />
+  type={txType} // <-- Добавили
+  categories={categories}
+  initial={editing ? {
+    amount: String(editing.amount),
+    category_name: editing.category_name,
+    place_name: editing.place_name,
+    transaction_date: editing.transaction_datetime?.slice(0, 10),
+    comment: editing.comment,
+  } : undefined}
+  onSubmit={handleSubmit}
+  onCancel={() => { setModalOpen(false); setEditing(null); }}
+/>
       </Modal>
     </section>
   );
