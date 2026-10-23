@@ -24,14 +24,14 @@ export function StatisticsPage() {
     transactionsApi.list('expense', user.user_id, params).then((r) => setExpense(r.data));
   }, [user, startDate, endDate]);
 
-  const sum = (arr: Transaction[]) => arr.reduce((s, t) => s + Number(t.amount), 0);
+  const sum = (arr: Transaction[]) => arr.reduce((s, t) => s + t.amount, 0);
   const totalIncome = sum(income);
   const totalExpense = sum(expense);
   const balance = totalIncome - totalExpense;
 
   const groupByCategory = (arr: Transaction[]) =>
     arr.reduce<Record<string, number>>((acc, t) => {
-      acc[t.category_name] = (acc[t.category_name] || 0) + Number(t.amount);
+      acc[t.category_name] = (acc[t.category_name] || 0) + t.amount;
       return acc;
     }, {});
 

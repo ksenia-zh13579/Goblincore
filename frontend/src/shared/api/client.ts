@@ -1,39 +1,43 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
+  withCredentials: true, // 👈 Добавьте эту строку
 });
 
+// Подставляем access_token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('gbc_access');
-  if (token) {
-    config.headers.Authorization = 'Bearer ' + token;
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
+// Обработка 401 — попытка refresh
 api.interceptors.response.use(
-  (response) => response,
+  (r) => r,
   async (error) => {
     const original = error.config;
-    if (
-      error.response?.status === 401 &&
-      original &&
-      !original._retry &&
-      !original.url?.endsWith('/auth/refresh')
-    ) {
+    if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
-      try {
-        const { data } = await api.post('/auth/refresh');
-        localStorage.setItem('gbc_access', data.accessToken);
-        original.headers.Authorization = 'Bearer ' + data.accessToken;
-        return api(original);
-      } catch {
-        localStorage.removeItem('gbc_user');
-        localStorage.removeItem('gbc_access');
-        window.location.href = '/login';
+      const refresh = localStorage.getItem('gbc_refresh');
+      if (refresh) {
+        try {
+          const { data } = await axios.post(
+            `${api.defaults.baseURL}/token`,
+            { refresh_token: refresh },
+            { params: { grant_type: 'refresh_token' } }
+          );
+          localStorage.setItem('gbc_access', data.access_token);
+          localStorage.setItem('gbc_refresh', data.refresh_token);
+          original.headers.Authorization = `Bearer ${data.access_token}`;
+          return api(original);
+        } catch {
+          localStorage.clear();
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
