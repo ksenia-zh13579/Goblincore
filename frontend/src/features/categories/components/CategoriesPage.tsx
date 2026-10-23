@@ -44,7 +44,7 @@ export function CategoriesPage() {
   }
 };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!user) return;
     if (!confirm('Удалить категорию? Если есть транзакции, она уйдёт в архив.')) return;
     await categoriesApi.remove(txType, id, user.user_id);
@@ -68,7 +68,7 @@ export function CategoriesPage() {
               <div>
                 <span className="category-row__name">{c.name}</span>
                 {withLimit && c.limit != null && (
-                  <span className="category-row__limit">Лимит: {c.limit.toLocaleString('ru-RU')} ₽</span>
+                  <span className="category-row__limit">Лимит: {Number(c.limit).toLocaleString('ru-RU')} ₽</span>
                 )}
               </div>
               <div className="category-row__actions">

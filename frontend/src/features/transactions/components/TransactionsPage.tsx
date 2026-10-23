@@ -40,7 +40,7 @@ export function TransactionsPage() {
         }),
         categoriesApi.list(txType, user.user_id),
       ]);
-      setItems(txRes.data);
+      setItems(txRes.data.filter((item) => item.type === txType));
       setCategories(catRes.data);
     } finally {
       setLoading(false);
@@ -55,11 +55,11 @@ export function TransactionsPage() {
   const sorted = useMemo(() => {
     const arr = [...items];
     switch (sort) {
-      case 'amount': return arr.sort((a, b) => b.amount - a.amount);
-      case 'place': return arr.sort((a, b) => a.place_name.localeCompare(b.place_name));
+      case 'amount': return arr.sort((a, b) => Number(b.amount) - Number(a.amount));
+      case 'place': return arr.sort((a, b) => (a.place_name ?? '').localeCompare(b.place_name ?? ''));
       case 'category': return arr.sort((a, b) => a.category_name.localeCompare(b.category_name));
       default: return arr.sort((a, b) =>
-        new Date(b.transaction_datetime).getTime() - new Date(a.transaction_datetime).getTime()
+        new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
       );
     }
   }, [items, sort]);
@@ -75,7 +75,7 @@ export function TransactionsPage() {
     await load();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!user) return;
     if (!confirm('Удалить запись?')) return;
     await transactionsApi.remove(txType, id, user.user_id);
@@ -131,18 +131,18 @@ export function TransactionsPage() {
         onClose={() => { setModalOpen(false); setEditing(null); }}
       >
         <TransactionForm
-  type={txType} // <-- Добавили
-  categories={categories}
-  initial={editing ? {
-    amount: String(editing.amount),
-    category_name: editing.category_name,
-    place_name: editing.place_name,
-    transaction_date: editing.transaction_datetime?.slice(0, 10),
-    comment: editing.comment,
-  } : undefined}
-  onSubmit={handleSubmit}
-  onCancel={() => { setModalOpen(false); setEditing(null); }}
-/>
+          categories={categories}
+          initial={editing ? {
+            amount: Number(editing.amount),
+            category_name: editing.category_name,
+            place_name: editing.place_name,
+            transaction_date: editing.transaction_date.slice(0, 10),
+            comment: editing.comment,
+          } : undefined}
+          type={txType}
+          onSubmit={(data) => handleSubmit({ ...data, type: txType })}
+          onCancel={() => { setModalOpen(false); setEditing(null); }}
+        />
       </Modal>
     </section>
   );

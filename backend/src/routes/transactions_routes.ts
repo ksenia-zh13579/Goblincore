@@ -7,8 +7,19 @@ import {
     deleteTransaction
 } from "../controllers/transactions_controller";
 import { authMiddleware } from "../middleware/auth_middleware";
+import {
+    getMyCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+} from "../controllers/category_controller";
 
 const router = Router()
+
+router.get("/categories", authMiddleware, getMyCategories);
+router.post("/categories", authMiddleware, createCategory);
+router.patch("/categories/:id", authMiddleware, updateCategory);
+router.delete("/categories/:id", authMiddleware, deleteCategory);
 
 /**
  * @openapi

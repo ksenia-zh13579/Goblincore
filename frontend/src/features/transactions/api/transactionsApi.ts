@@ -2,69 +2,55 @@ import { api } from '../../../shared/api/client';
 
 export type TransactionType = 'income' | 'expense';
 
-// То, что приходит с бэкенда
 export interface Transaction {
-  transaction_id: number;
-  place_name: string;
+  transaction_id: string;
+  category_id: string;
   category_name: string;
-  transaction_datetime: string; // или transaction_date
-  amount: string | number;
-  comment?: string;
-}
-
-// То, что ждет бэкенд при создании (см. Swagger в routes)
-export interface TransactionPayload {
-  category_name: string;
-  category_limit?: string; // Обязательно для новых категорий расходов!
-  place_name: string;
+  transaction_date: string;
   amount: string;
-  comment?: string;
-  transaction_date: string; // Бэкенд ждет date (YYYY-MM-DD)
+  comment: string | null;
+  place_id: string | null;
+  place_name: string | null;
   type: TransactionType;
 }
 
-// То, что ждет бэкенд при обновлении
-export interface PatchTransactionPayload {
-  category_name?: string;
-  category_limit?: string;
-  place_name?: string;
-  amount?: string;
-  comment?: string;
-  transaction_date?: string;
-  type?: TransactionType;
+export interface TransactionPayload {
+  category_name: string;
+  category_limit?: number;
+  place_name?: string | null;
+  transaction_date: string;
+  amount: number;
+  comment?: string | null;
+  type: TransactionType;
 }
 
 export const transactionsApi = {
-  // 1. Получить список (бэкенд отдает все сразу, без разделения на income/expense)
   list: (
     type: TransactionType,
-    userId: number, // На бэкенде userId не используется в query, он берется из токена
-    params: { start_date?: string; end_date?: string; q?: string; page?: number; limit?: number } = {}
-  ) =>
-    api.get<Transaction[]>('/api/transactions', {
-      params: params, // Убрали user_id, так как бэкенд берет его из токена
-    }).then(res => {
-      // Так как бэкенд отдает общий список, отфильтруем его на клиенте по типу
-      // (В идеале бэкенд должен это делать, но пока так)
-      return {
-        ...res,
-        data: res.data.filter(tx => {
-          // В идеале на бэкенде должна быть проверка типа, но если там нет поля type в ответе,
-          // придется фильтровать иначе. Пока возвращаем всё.
-          return true; 
-        })
-      }
+    _userId: string,
+    params: { start_date?: string; end_date?: string; q?: string } = {}
+  ) => api.get<Transaction[]>('/transactions').then((response) => ({
+    ...response,
+    data: response.data.filter((item) => {
+      const date = item.transaction_date.slice(0, 10);
+      const matchesDate =
+        (!params.start_date || date >= params.start_date) &&
+        (!params.end_date || date <= params.end_date);
+      const query = params.q?.trim().toLowerCase();
+      const matchesQuery = !query ||
+        item.category_name.toLowerCase().includes(query) ||
+        (item.place_name ?? '').toLowerCase().includes(query) ||
+        (item.comment ?? '').toLowerCase().includes(query);
+      return item.type === type && matchesDate && matchesQuery;
     }),
+  })),
 
-  // 2. Создать (без /expense в URL, тип внутри body)
-  create: (type: TransactionType, data: TransactionPayload) =>
-    api.post<Transaction>('/api/transactions', { ...data, type }),
+  create: (type: TransactionType, data: Omit<TransactionPayload, 'type'>) =>
+    api.post<Transaction>('/transactions', { ...data, type }),
 
-  // 3. Обновить (без /expense в URL)
-  update: (type: TransactionType, id: number, data: PatchTransactionPayload) =>
-    api.patch<Transaction>(`/api/transactions/${id}`, data),
+  update: (type: TransactionType, id: string, data: Partial<TransactionPayload>) =>
+    api.patch<Transaction>(`/transactions/${id}`, { ...data, type }),
 
-  // 4. Удалить (без /expense в URL)
-  remove: (type: TransactionType, id: number, userId: number) =>
-    api.delete(`/api/transactions/${id}`), 
+  remove: (_type: TransactionType, id: string, _userId: string) =>
+    api.delete(`/transactions/${id}`),
 };
