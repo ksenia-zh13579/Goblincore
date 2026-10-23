@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { authApi } from '../../features/auth/api/authApi';
 
 interface User {
-  user_id: number;
+  user_id: string;
   username: string;
   email: string;
 }
@@ -9,7 +10,7 @@ interface User {
 interface AuthContextValue {
   user: User | null;
   accessToken: string | null;
-  login: (user: User, access: string, refresh: string) => void;
+  login: (user: User, access: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -27,12 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.getItem('gbc_access')
   );
 
-  const login = (u: User, access: string, refresh: string) => {
+  const login = (u: User, access: string) => {
     setUser(u);
     setAccessToken(access);
     localStorage.setItem('gbc_user', JSON.stringify(u));
     localStorage.setItem('gbc_access', access);
-    localStorage.setItem('gbc_refresh', refresh);
   };
 
   const logout = () => {
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null);
     localStorage.removeItem('gbc_user');
     localStorage.removeItem('gbc_access');
-    localStorage.removeItem('gbc_refresh');
+    void authApi.logout().catch(() => undefined);
   };
 
   return (

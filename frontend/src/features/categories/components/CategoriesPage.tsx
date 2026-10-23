@@ -30,16 +30,16 @@ export function CategoriesPage() {
   const handleSubmit = async (data: { name: string; limit?: number }) => {
     if (!user) return;
     if (editing) {
-      await categoriesApi.update(txType, editing.category_id, { user_id: user.user_id, ...data });
+      await categoriesApi.update(txType, editing.category_id, data);
     } else {
-      await categoriesApi.create(txType, { user_id: user.user_id, ...data });
+      await categoriesApi.create(txType, data);
     }
     setModalOpen(false);
     setEditing(null);
     await load();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!user) return;
     if (!confirm('Удалить категорию? Если есть транзакции, она уйдёт в архив.')) return;
     await categoriesApi.remove(txType, id, user.user_id);
@@ -63,7 +63,7 @@ export function CategoriesPage() {
               <div>
                 <span className="category-row__name">{c.name}</span>
                 {withLimit && c.limit != null && (
-                  <span className="category-row__limit">Лимит: {c.limit.toLocaleString('ru-RU')} ₽</span>
+                  <span className="category-row__limit">Лимит: {Number(c.limit).toLocaleString('ru-RU')} ₽</span>
                 )}
               </div>
               <div className="category-row__actions">

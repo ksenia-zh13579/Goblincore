@@ -30,12 +30,12 @@ export function ProfilePage() {
       return;
     }
     try {
-      const { data } = await api.patch(`/profile/${user!.user_id}`, {
+      const { data } = await api.patch('/profile', {
         username,
         email,
-        ...(password ? { password_hash: password } : {}),
+        ...(password ? { password } : {}),
       });
-      login({ user_id: data.user_id, username: data.username, email: data.email }, accessToken!, localStorage.getItem('gbc_refresh')!);
+      login(data.user, accessToken!);
       setMessage('Профиль обновлён');
       setPassword('');
       setConfirm('');
