@@ -6,6 +6,7 @@ import {
     createRefreshToken,
     verifyRefreshToken
 } from "../services/auth_service";
+import validator from "validator";
 
 const REFRESH_COOKIE = "refreshToken";
 const REFRESH_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
@@ -34,11 +35,11 @@ export async function register(
     res: Response
 ) {
     try {
-        const { username, email, password } = req.body ?? {};
+        const { username, email: rawEmail, password } = req.body;
 
         if (
             typeof username !== "string" ||
-            typeof email !== "string" ||
+            typeof rawEmail !== "string" ||
             typeof password !== "string"
         ) {
             return res.status(400).json({
@@ -47,7 +48,7 @@ export async function register(
         }
 
         const normalizedUsrename = username.trim();
-        const normalizedEmail = email.trim().toLowerCase();
+        const normalizedEmail = rawEmail.trim().toLowerCase();
 
         if (
             !normalizedUsrename ||
@@ -55,6 +56,12 @@ export async function register(
         ) {
             return res.status(400).json({
                 message: "Некорректное имя пользователя",
+            });
+        }
+
+        if (!validator.isEmail(normalizedEmail, { require_tld: true})) {
+            return res.status(400).json({
+                message: "Укажите корректный email, например alex@example.com",
             });
         }
 
@@ -110,7 +117,7 @@ export async function register(
                 created_at: user.created_at,
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         if (
             typeof error === "object" &&
             error !== null &&
@@ -122,10 +129,11 @@ export async function register(
             });
         }
 
-        console.error(error);
+        console.error("ОШИБКА РЕГИСТРАЦИИ:", error);
 
         return res.status(500).json({
             message: "Ошибка при создании аккаунта",
+            details: error.message // Показываем реальную ошибку
         });
     }
 }
@@ -154,14 +162,15 @@ export async function login(
             },
         });
 
-        if (
-            !user ||
-            !(await bcrypt.compare(password, user.password_hash))
-        ) {
-            return res.status(401).json({
-                message: "Неверный email или пароль",
-            });
-        }
+        if (!user) {
+    return res.status(401).json({ message: "Неверный email или пароль" });
+}
+
+const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+if (!isPasswordValid) {
+    return res.status(401).json({ message: "Неверный email или пароль" });
+}
 
         const accessToken = createAccessToken(user.user_id);
         const refreshToken = createRefreshToken(user.user_id);
@@ -178,11 +187,12 @@ export async function login(
                 email: user.email,
             },
         });
-    } catch (error) {
-        console.error(error);
+    } catch (error: any) {
+        console.error("ОШИБКА ВХОДА:", error);
 
         return res.status(500).json({
             message: "Ошибка при входе",
+            details: error.message // <--- ТЕПЕРЬ МЫ УВИДИМ ПРИЧИНУ
         });
     }
 }
@@ -192,9 +202,9 @@ export async function refresh(
     res: Response
 ) {
     try {
-        const refreshToken = req.cookies?.[REFRESH_COOKIE];
+        const refreshToken = req.cookies?.refreshToken;
 
-        if (typeof refreshToken !== "string") {
+        if (!refreshToken) {
             return res.status(401).json({
                 message: "Refresh token отсутствует",
             });
@@ -203,16 +213,16 @@ export async function refresh(
         const payload = verifyRefreshToken(refreshToken);
 
         if (!payload) {
-            clearRefreshCookie(res);
-
             return res.status(401).json({
                 message: "Refresh token недействителен или истек",
             });
         }
 
+        const userId = BigInt(payload.user_id);
+
         const user = await prisma.users.findUnique({
             where: {
-                user_id: BigInt(payload.user_id),
+                user_id: userId,
             },
             select: {
                 user_id: true,
@@ -220,10 +230,8 @@ export async function refresh(
         });
 
         if (!user) {
-            clearRefreshCookie(res);
-
             return res.status(401).json({
-                message: "Аккаунт не найден",
+                message: "Аккаунт не найден или сессия недействительна",
             });
         }
 
@@ -231,13 +239,13 @@ export async function refresh(
 
         return res.status(200).json({
             accessToken,
-            tokenType: "Bearer",
         });
-    } catch (error) {
-        console.error(error);
+    } catch (error: any) {
+        console.error("ОШИБКА ОБНОВЛЕНИЯ ТОКЕНА:", error);
 
         return res.status(500).json({
             message: "Ошибка при обновлении токена",
+            details: error.message
         });
     }
 }

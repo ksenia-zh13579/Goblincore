@@ -217,6 +217,41 @@ const options: swaggerJSDoc.Options = {
                         },
                     },
                 },
+                Category: {
+                    type: "object",
+                    required: [
+                        "category_id",
+                        "user_id",
+                        "name",
+                        "category_type",
+                        "category_limit",
+                    ],
+                    properties: {
+                        category_id: {
+                            type: "string",
+                            example: "3",
+                        },
+                        user_id: {
+                            type: "string",
+                            example: "1",
+                        },
+                        name: {
+                            type: "string",
+                            example: "Продукты",
+                        },
+                        category_type: {
+                            type: "string",
+                            enum: ["income", "expense"],
+                            example: "expense",
+                        },
+                        category_limit: {
+                            type: "string",
+                            nullable: true,
+                            example: "15000.00",
+                            description: "Лимит категории расходов. Для доходов равен null."
+                        },
+                    },
+                },
                 CreateTransactionRequest: {
                     type: "object",
                     required: [
@@ -311,6 +346,64 @@ const options: swaggerJSDoc.Options = {
                         },
                     },
                 },
+                CreateCategoryRequest: {
+                    oneOf: [
+                        {
+                            type: "object",
+                            required: ["name", "category_type"],
+                            properties: {
+                                name: {
+                                    type: "string",
+                                    maxLength: 100,
+                                    example: "Зарплата",
+                                },
+                                category_type: {
+                                    type: "string",
+                                    enum: ["income"],
+                                },
+                            },
+                        },
+                        {
+                            type: "object",
+                            required: ["name", "category_type", "category_limit"],
+                            properties: {
+                                name: {
+                                    type: "string",
+                                    maxLength: 100,
+                                    example: "Продукты",
+                                },
+                                category_type: {
+                                    type: "string",
+                                    enum: ["expense"],
+                                },
+                                category_limit: {
+                                    type: "string",
+                                    pattern: "^[0-9]{1,10}(\\.[0-9]{1,2})?$",
+                                    example: "15000.00",
+                                },
+                            },
+                        },
+                    ],
+                },
+                PatchCategoryRequest: {
+                    type: "object",
+                    minProperties: 1,
+                    additionalProperties: false,
+                    properties: {
+                        name: {
+                            type: "string",
+                            minLength: 1,
+                            maxLength: 100,
+                            example: "Продукты в Пятаке",
+                        },
+                        category_limit: {
+                            type: "string",
+                            pattern: "^[0-9]{1,10}(\\.[0-9]{1,2})?$",
+                            example: "20000.00",
+                            description: "Новый лимит категории расходов",
+                        },
+                    },
+                },
                 TransactionMutationResponse: {
                     type: "object",
                     required: ["message", "transaction"],
@@ -321,6 +414,19 @@ const options: swaggerJSDoc.Options = {
                         },
                         transaction: {
                             $ref: '#/components/schemas/Transaction',
+                        },
+                    },
+                },
+                CategoryMutationResponse: {
+                    type: "object",
+                    required: ["message", "category"],
+                    properties: {
+                        message: {
+                            type: "string",
+                            example: "Категория успешно обновлена",
+                        },
+                        category: {
+                            $ref: '#/components/schemas/Category',
                         },
                     },
                 },
