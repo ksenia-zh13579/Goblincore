@@ -93,3 +93,33 @@ npm run dev
 cd frontend
 npm run dev
 ```
+
+## Запуск через Docker Compose
+
+Для запуска всего проекта нужны Docker Desktop и Docker Compose:
+
+```powershell
+docker compose up --build
+```
+
+После запуска:
+
+- frontend: http://localhost:5175
+- backend: http://localhost:3000
+- Swagger: http://localhost:3000/api-docs
+
+PostgreSQL запускается в отдельном контейнере, а данные сохраняются в volume
+`postgres_data`. При старте backend автоматически выполняется `npx prisma db push`,
+поэтому отдельно запускать Prisma не требуется.
+
+Для остановки контейнеров:
+
+```powershell
+docker compose down
+```
+
+Чтобы удалить также данные PostgreSQL:
+
+```powershell
+docker compose down -v
+```
