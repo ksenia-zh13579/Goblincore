@@ -117,7 +117,7 @@ export async function register(
                 created_at: user.created_at,
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         if (
             typeof error === "object" &&
             error !== null &&
@@ -129,10 +129,11 @@ export async function register(
             });
         }
 
-        console.error(error);
+        console.error("ОШИБКА РЕГИСТРАЦИИ:", error);
 
         return res.status(500).json({
             message: "Ошибка при создании аккаунта",
+            details: error.message // Показываем реальную ошибку
         });
     }
 }
@@ -161,14 +162,15 @@ export async function login(
             },
         });
 
-        if (
-            !user ||
-            !(await bcrypt.compare(password, user.password_hash))
-        ) {
-            return res.status(401).json({
-                message: "Неверный email или пароль",
-            });
-        }
+        if (!user) {
+    return res.status(401).json({ message: "Неверный email или пароль" });
+}
+
+const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+if (!isPasswordValid) {
+    return res.status(401).json({ message: "Неверный email или пароль" });
+}
 
         const accessToken = createAccessToken(user.user_id);
         const refreshToken = createRefreshToken(user.user_id);
@@ -185,11 +187,12 @@ export async function login(
                 email: user.email,
             },
         });
-    } catch (error) {
-        console.error(error);
+    } catch (error: any) {
+        console.error("ОШИБКА ВХОДА:", error);
 
         return res.status(500).json({
             message: "Ошибка при входе",
+            details: error.message // <--- ТЕПЕРЬ МЫ УВИДИМ ПРИЧИНУ
         });
     }
 }
@@ -237,11 +240,12 @@ export async function refresh(
         return res.status(200).json({
             accessToken,
         });
-    } catch (error) {
-        console.error(error);
+    } catch (error: any) {
+        console.error("ОШИБКА ОБНОВЛЕНИЯ ТОКЕНА:", error);
 
         return res.status(500).json({
             message: "Ошибка при обновлении токена",
+            details: error.message
         });
     }
 }

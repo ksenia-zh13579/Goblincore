@@ -1,25 +1,24 @@
 import { FormEvent, useState } from 'react';
 import { Input } from '../../../shared/ui/Input';
 import { Button } from '../../../shared/ui/Button';
-import { TransactionPayload } from '../api/transactionsApi';
+import { TransactionPayload, TransactionType } from '../api/transactionsApi';
 import { Category } from '../../categories/api/categoriesApi';
 
 interface Props {
-  userId: number;
+  type: TransactionType;
   categories: Category[];
-  initial?: Partial<TransactionPayload> & { category_name?: string };
-  onSubmit: (data: TransactionPayload & { category_name?: string }) => Promise<void>;
+  initial?: Partial<TransactionPayload>;
+  onSubmit: (data: TransactionPayload) => Promise<void>;
   onCancel: () => void;
 }
 
-export function TransactionForm({ userId, categories, initial, onSubmit, onCancel }: Props) {
+export function TransactionForm({ type, categories, initial, onSubmit, onCancel }: Props) {
   const [amount, setAmount] = useState(String(initial?.amount ?? ''));
-  const [categoryId, setCategoryId] = useState(String(initial?.category_id ?? ''));
-  const [customCategory, setCustomCategory] = useState('');
-  const [useCustom, setUseCustom] = useState(false);
-  const [placeId, setPlaceId] = useState(String(initial?.place_id ?? ''));
-  const [datetime, setDatetime] = useState(
-    initial?.transaction_datetime?.slice(0, 16) ?? new Date().toISOString().slice(0, 16)
+  const [categoryName, setCategoryName] = useState(initial?.category_name ?? '');
+  const [categoryLimit, setCategoryLimit] = useState(initial?.category_limit ?? '');
+  const [placeName, setPlaceName] = useState(initial?.place_name ?? '');
+  const [date, setDate] = useState(
+    initial?.transaction_date ?? new Date().toISOString().slice(0, 10)
   );
   const [comment, setComment] = useState(initial?.comment ?? '');
   const [error, setError] = useState<string | null>(null);
@@ -28,23 +27,27 @@ export function TransactionForm({ userId, categories, initial, onSubmit, onCance
     e.preventDefault();
     setError(null);
 
-    if (!useCustom && !categoryId) {
-      setError('Выберите категорию или введите свою');
+    if (!categoryName.trim()) {
+      setError('Введите название категории');
       return;
     }
-    if (useCustom && !customCategory.trim()) {
-      setError('Введите название категории');
+    if (type === 'expense' && !categoryLimit && !categories.find(c => c.name === categoryName)) {
+       setError('Для новой категории расходов нужно указать лимит (category_limit)');
+       return;
+    }
+    if (!placeName.trim()) {
+      setError('Введите название получателя/источника');
       return;
     }
 
     await onSubmit({
-      user_id: userId,
-      place_id: Number(placeId),
-      category_id: useCustom ? 0 : Number(categoryId),
-      transaction_datetime: new Date(datetime).toISOString(),
-      amount: Number(amount),
+      type,
+      amount: Number(amount).toFixed(2),
+      category_name: categoryName.trim(),
+      category_limit: categoryLimit ? Number(categoryLimit).toFixed(2) : undefined,
+      place_name: placeName.trim(),
+      transaction_date: date,
       comment,
-      category_name: useCustom ? customCategory.trim() : undefined,
     });
   };
 
@@ -60,54 +63,47 @@ export function TransactionForm({ userId, categories, initial, onSubmit, onCance
       />
 
       <label className="field">
-        <span className="field__label">Категория</span>
-        <select
-          className="field__input"
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          disabled={useCustom}
-        >
-          <option value="">— выберите —</option>
-          {categories.map((c) => (
-            <option key={c.category_id} value={c.category_id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="field field--checkbox">
+        <span className="field__label">Категория (выберите или введите свою)</span>
         <input
-          type="checkbox"
-          checked={useCustom}
-          onChange={(e) => setUseCustom(e.target.checked)}
+          className="field__input"
+          list="category-list"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          placeholder="Например: Продукты"
+          required
         />
-        <span>Ввести свою категорию</span>
+        <datalist id="category-list">
+          {categories.map((c) => (
+            <option key={c.category_id} value={c.name} />
+          ))}
+        </datalist>
       </label>
 
-      {useCustom && (
+      {/* Если категория новая и это расход, просим лимит */}
+      {type === 'expense' && !categories.find(c => c.name === categoryName) && (
         <Input
-          label="Название своей категории"
-          value={customCategory}
-          onChange={(e) => setCustomCategory(e.target.value)}
-          placeholder="Например: Книги, Кофе, Подарки"
+          label="Лимит на месяц для новой категории, ₽"
+          type="number"
+          step="0.01"
+          value={categoryLimit}
+          onChange={(e) => setCategoryLimit(e.target.value)}
           required
         />
       )}
 
       <Input
-        label="ID источника/получателя"
-        type="number"
-        value={placeId}
-        onChange={(e) => setPlaceId(e.target.value)}
+        label={type === 'income' ? "Источник дохода" : "Получатель (магазин, сервис)"}
+        value={placeName}
+        onChange={(e) => setPlaceName(e.target.value)}
+        placeholder="Например: Пятерочка"
         required
       />
 
       <Input
-        label="Дата и время"
-        type="datetime-local"
-        value={datetime}
-        onChange={(e) => setDatetime(e.target.value)}
+        label="Дата"
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
         required
       />
 

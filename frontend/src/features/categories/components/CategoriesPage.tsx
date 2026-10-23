@@ -28,16 +28,21 @@ export function CategoriesPage() {
   useEffect(() => { load(); }, [txType, user]);
 
   const handleSubmit = async (data: { name: string; limit?: number }) => {
-    if (!user) return;
+  if (!user) return;
+  try {
     if (editing) {
-      await categoriesApi.update(txType, editing.category_id, { user_id: user.user_id, ...data });
+      await categoriesApi.update(txType, editing.category_id, data);
     } else {
-      await categoriesApi.create(txType, { user_id: user.user_id, ...data });
+      await categoriesApi.create(txType, data);
     }
     setModalOpen(false);
     setEditing(null);
-    await load();
-  };
+    await load(); // Перезагружаем список
+  } catch (err: any) {
+    // Показываем ошибку, если бэкенд не принял данные (например, не указан лимит)
+    alert(err.response?.data?.message || 'Ошибка при сохранении категории');
+  }
+};
 
   const handleDelete = async (id: number) => {
     if (!user) return;

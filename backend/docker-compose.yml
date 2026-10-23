@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: goblincore-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: finance_tracker
+    ports:
+      - "5433:5432"  # Обратите внимание: снаружи порт 5433, чтобы не конфликтовать с локальным PostgreSQL (если он вдруг запустится)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
