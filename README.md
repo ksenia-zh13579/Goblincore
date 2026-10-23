@@ -1,112 +1,168 @@
-# Goblincore - персональный трекер финансов
+# 🪙 Goblincore — персональный трекер финансов
 
-Проект для КР № 2 по СПО
+Веб-приложение для ведения личного бюджета. Позволяет учитывать доходы и расходы, распределять их по категориям, задавать месячные лимиты и смотреть наглядную статистику.
 
-## Команда
+**Стек технологий:**
+*   **Frontend:** React, TypeScript, Vite, Chart.js, Axios
+*   **Backend:** Node.js, Express, TypeScript, Prisma ORM
+*   **База данных:** PostgreSQL (запускается через Docker)
 
-"Топовый игнор"
-Участники: Гузаирова О. Р., Ходжакулыев Р. Р., Жужлева К. А., Шульга М. А., Крестин К. Б.
+---
 
-## Инструкция по запуску сервера
+## 📋 Предварительные требования
 
-1. Для успешного запуска сервера вам нужно установить:
-    - Node.js и npm
-    - PostgreSQL
-    - Git
+Перед началом работы убедитесь, что на вашем компьютере установлены:
 
-(После установки лучше проверить версии в терминале:
+1.  **Node.js** (версия 18 или 20 LTS) и **npm**. [Скачать](https://nodejs.org/)
+2.  **Docker Desktop** (для запуска базы данных). [Скачать](https://www.docker.com/products/docker-desktop/)
+3.  **Git**. [Скачать](https://git-scm.com/)
+
+Проверить установку можно в терминале:
 ```bash
 node -v
 npm -v
+docker --version
 git --version
-```
-)
-
-2. Скачай проект с GitHub:
-```bash
+🚀 Шаг 1. Клонирование репозитория
+bash
 git clone https://github.com/ksenia-zh13579/Goblincore.git
-```
+cd Goblincore
+🗄️ Шаг 2. Запуск Базы Данных (Docker)
+Мы используем Docker, чтобы не устанавливать PostgreSQL локально и избежать проблем с паролями.
 
-3. Перейди в папку проекта и зайди в backend:
-```
-cd Goblincore/backend
-```
+Перейдите в папку backend:
 
-4. Установи зависимости:
-```bash
-npm ci
-```
+bash
+cd backend
+Запустите контейнер с базой данных в фоновом режиме:
 
-Команда будет использовать package-lock.json для установки зависимостей, зафиксированных в проекте.<br>
+bash
+docker compose up -d
+Проверьте, что контейнер запустился: docker ps. Вы должны увидеть контейнер goblincore-db.
 
-Если файл package-lock.json отсутствует, то сначала выполни:
-```bash
+⚙️ Шаг 3. Настройка Бэкенда
+Убедитесь, что вы находитесь в папке backend.
+
+Установите зависимости:
+
+bash
 npm install
-```
+Создайте файл .env на основе шаблона:
 
-5. Создай пустую базу данных в PostgreSQL:
+Windows (PowerShell):
 
-В pgAdmin подключись к локальному серверу и создай базу через раздел Database.
+powershell
+Copy-Item .env.example .env
+Mac/Linux:
 
-(если вам доступен psql, то можно создать через команду:
-```bash
-psql -U postgres -h localhost -p 5432 -c "CREATE DATABASE finance_tracker;"
-```
-Здесь postgres - это пользователь. Если он у вас другой, то замените postgres на нужное имя.<br>
-finance_tracker - название базы. Можете заменить не то, которое вам удобно.
-)
+bash
+cp .env.example .env
+Откройте созданный файл backend/.env и проверьте значения. Они должны быть такими:
 
-6. Настрой файл .env:
+env
+# Пароль и порт совпадают с настройками в docker-compose.yml
+DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5433/finance_tracker?schema=public"
 
-В корне репозитория есть шаблон: .env.example<br>
-Скопируйте его в .env на backend и заполните занчения:
-для bash:<br>
-```bash
-cp .env.example backend/.env
-```
-для powershell:<br>
-```powershell
-Copy-Item .env.example backend/.env
-```
-Пример значений в .env:<br>
-```
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/finance_tracker?schema=public"
-
-JWT_ACCESS_SECRET="your_own_long_random_access_secret"
-JWT_REFRESH_SECRET="your_own_long_random_refresh_secret"
+# Секретные ключи для JWT-токенов (можно оставить как есть для локальной разработки)
+ACCESS_TOKEN_SECRET="super_secret_access_key_goblincore"
+REFRESH_TOKEN_SECRET="super_secret_refresh_key_goblincore"
 
 PORT=3000
 NODE_ENV=development
-```
+Важно: Обратите внимание на порт 5433 (а не 5432). Мы специально пробросили порт Docker-базы на 5433, чтобы избежать конфликта, если у вас локально уже установлен PostgreSQL.
 
-7. Создай таблицы с помощью Prisma
+Примените схему базы данных (создайте таблицы) через Prisma:
 
-Сначала проверь, есть ли миграции в папке prisma: migrations/
-
-- если она есть, то последовательно выполни:
-```bash
-npx prisma migrate deploy
-npx prisma generate
-```
-
-(первая команда применит существующие миграции к новой базе, а вторая создаст Prisma Client)
-
-- если папки миграций нет, то можно создать структуру напрямую:
-```bash
+bash
 npx prisma db push
 npx prisma generate
-```
+Запустите сервер бэкенда:
 
-(первая команда синхронизирует структуру базы данных с schema.prisma без создания истории миграций)<br>
-
-8. Запусти сервер:
-```bash
+bash
 npm run dev
-```
+В терминале должно появиться: Server started on http://localhost:3000
 
-В терминале должно появиться:
-```text 
-Server started on http://localhost:3000
-```
+🎨 Шаг 4. Настройка Фронтенда
+Откройте новый терминал (не закрывая тот, где работает бэкенд).
 
-(3000 может поменяться в зависимотси от порта, который вы указали)
+Перейдите в папку frontend (из корня проекта):
+
+bash
+cd frontend
+Установите зависимости:
+
+bash
+npm install
+Создайте файл .env (если его нет) и добавьте адрес бэкенда:
+
+env
+VITE_API_URL=http://localhost:3000
+Запустите фронтенд:
+
+bash
+npm run dev
+Vite напишет в терминале: ➜ Local: http://localhost:5173/
+
+✅ Шаг 5. Проверка работы
+Откройте в браузере: http://localhost:5173
+
+Нажмите «Зарегистрироваться».
+
+Примечание: пароль должен быть от 8 до 72 символов.
+
+После успешной регистрации войдите в систему.
+
+Попробуйте добавить доход или расход. Если карточка появилась, а в консоли нет ошибок — всё работает идеально!
+
+🛠️ Частые проблемы (Troubleshooting)
+🔴 Ошибка при входе/регистрации (CORS)
+Если в консоли браузера вы видите Access-Control-Allow-Origin, убедитесь, что в backend/src/app.ts настроен CORS для http://localhost:5173, а бэкенд перезапущен.
+
+🔴 Ошибка базы данных (P1000 / P1001)
+Проверьте, что Docker Desktop запущен, а контейнер goblincore-db работает (docker ps).
+
+Убедитесь, что в backend/.env в DATABASE_URL указан порт 5433.
+
+🔴 Страница в браузере не открывается («Доступ закрыт»)
+Новые версии Chrome и Яндекс.Браузера блокируют запросы к localhost.
+
+Решение: Откройте проект в Firefox или отключите флаг chrome://flags/#local-network-access-check в настройках Chrome (поставьте Disabled и перезапустите браузер).
+
+🔴 «Неверный email или пароль»
+Проверьте, под каким email вы регистрировались. Посмотреть список пользователей в базе можно командой:
+
+bash
+docker exec -it goblincore-db psql -U postgres -d finance_tracker -c "SELECT email FROM users;"
+🔴 Как остановить проект?
+В терминалах нажать Ctrl+C (остановит фронт и бэк).
+
+Чтобы остановить базу данных: в папке backend выполнить docker compose down (данные сохранятся в volume).
+
+📁 Структура проекта
+text
+Goblincore/
+├── backend/               # Серверная часть (Express + Prisma)
+│   ├── src/               # Исходный код
+│   ├── prisma/            # Схема базы данных
+│   ├── docker-compose.yml # Конфигурация базы данных
+│   └── .env.example       # Шаблон переменных окружения
+├── frontend/              # Клиентская часть (React + Vite)
+│   ├── src/               # Исходный код
+│   ├── public/            # Статические файлы (логотип)
+│   └── .env.example       # Шаблон переменных окружения
+└── README.md              # Этот файл
+Проект выполнен в рамках контрольной работы №2 по дисциплине СПО. Команда «Топовый игнор».
+
+text
+
+---
+
+### 💡 Что сделать после создания README:
+
+1. Сохраните файл как `README.md` в **корне** проекта (рядом с папками `backend` и `frontend`).
+2. Добавьте его в Git и закоммитьте:
+   ```bash
+   git add README.md
+   git commit -m "docs: добавлена подробная инструкция по запуску"
+   git push
+Если вы уже создали Pull Request, этот коммит автоматически добавится в него.
