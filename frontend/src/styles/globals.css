@@ -148,7 +148,7 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
+  width: auto;
   height: 40px;
   border-radius: 10px;
   background: transparent;
@@ -436,7 +436,7 @@ select.field__input {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.card::before {
+/* .card::before {
   content: '';
   position: absolute;
   left: 0;
@@ -444,12 +444,25 @@ select.field__input {
   bottom: 0;
   width: 4px;
   background: linear-gradient(180deg, var(--expense), color-mix(in srgb, var(--expense) 60%, transparent));
-}
+} */
 
 .card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--border);
+}
+
+.card--over-limit {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.card--over-limit::before {
+  background: var(--danger);
+}
+
+.card--over-limit .card__amount {
+  color: var(--danger);
 }
 
 .card__header {

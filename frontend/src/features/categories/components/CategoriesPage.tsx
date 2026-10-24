@@ -6,7 +6,6 @@ import { useAuth } from '../../../app/providers/AuthProvider';
 import { Button } from '../../../shared/ui/Button';
 import { Modal } from '../../../shared/ui/Modal';
 import { EmptyState } from '../../../shared/ui/EmptyState';
-import { Breadcrumbs } from '../../navigation/components/Breadcrumbs';
 import { CategoryForm } from './CategoryForm';
 
 export function CategoriesPage() {
@@ -53,7 +52,6 @@ export function CategoriesPage() {
 
   return (
     <section className="page">
-      <Breadcrumbs items={[{ to: '/', label: 'Главная' }, { label: withLimit ? 'Категории расходов' : 'Категории доходов' }]} />
       <header className="page__header">
         <h1>{withLimit ? 'Категории расходов' : 'Категории доходов'}</h1>
         <Button onClick={() => { setEditing(null); setModalOpen(true); }}>+ Добавить</Button>

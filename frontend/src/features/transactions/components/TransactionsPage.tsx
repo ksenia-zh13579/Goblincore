@@ -7,15 +7,15 @@ import { Button } from '../../../shared/ui/Button';
 import { Input } from '../../../shared/ui/Input';
 import { Modal } from '../../../shared/ui/Modal';
 import { EmptyState } from '../../../shared/ui/EmptyState';
-import { Breadcrumbs } from '../../navigation/components/Breadcrumbs';
 import { TransactionCard } from './TransactionCard';
 import { TransactionForm } from './TransactionForm';
+import { toDateInputValue } from '../../../shared/utils/format';
 
 type SortKey = 'date' | 'amount' | 'place' | 'category';
 
 export function TransactionsPage() {
   const { type = 'expense' } = useParams<{ type: TransactionType }>();
-  const txType = type as TransactionType;
+  const txType: TransactionType = type === 'income' ? 'income' : 'expense';
   const { user } = useAuth();
 
   const [items, setItems] = useState<Transaction[]>([]);
@@ -36,7 +36,6 @@ export function TransactionsPage() {
         transactionsApi.list(txType, user.user_id, {
           start_date: startDate || undefined,
           end_date: endDate || undefined,
-          q: query || undefined,
         }),
         categoriesApi.list(txType, user.user_id),
       ]);
@@ -53,16 +52,29 @@ export function TransactionsPage() {
   }, [txType, user, startDate, endDate]);
 
   const sorted = useMemo(() => {
-    const arr = [...items];
+    const normalizedQuery = query.trim().toLocaleLowerCase('ru-RU');
+    const filtered = normalizedQuery
+      ? items.filter((tx) => [
+          tx.place_name,
+          tx.category_name,
+          tx.comment,
+          tx.transaction_date,
+          String(tx.amount),
+        ].some((value) => value?.toLocaleLowerCase('ru-RU').includes(normalizedQuery)))
+      : items;
+    const arr = [...filtered];
     switch (sort) {
-      case 'amount': return arr.sort((a, b) => b.amount - a.amount);
-      case 'place': return arr.sort((a, b) => a.place_name.localeCompare(b.place_name));
+      case 'amount': return arr.sort((a, b) => Number(b.amount) - Number(a.amount));
+      case 'place': return arr.sort((a, b) =>
+        (a.place_name || '').localeCompare(b.place_name || '')
+      );
       case 'category': return arr.sort((a, b) => a.category_name.localeCompare(b.category_name));
       default: return arr.sort((a, b) =>
-        new Date(b.transaction_datetime).getTime() - new Date(a.transaction_datetime).getTime()
+        new Date(`${b.transaction_date}T00:00:00`).getTime() -
+        new Date(`${a.transaction_date}T00:00:00`).getTime()
       );
     }
-  }, [items, sort]);
+  }, [items, query, sort]);
 
   const handleSubmit = async (payload: TransactionPayload) => {
     if (editing) {
@@ -75,7 +87,7 @@ export function TransactionsPage() {
     await load();
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: number | string) => {
     if (!user) return;
     if (!confirm('Удалить запись?')) return;
     await transactionsApi.remove(txType, id, user.user_id);
@@ -84,7 +96,6 @@ export function TransactionsPage() {
 
   return (
     <section className="page">
-      <Breadcrumbs items={[{ to: '/', label: 'Главная' }, { label: txType === 'income' ? 'Доходы' : 'Расходы' }]} />
       <header className="page__header">
         <h1>{txType === 'income' ? 'Доходы' : 'Расходы'}</h1>
         <Button onClick={() => { setEditing(null); setModalOpen(true); }}>
@@ -105,7 +116,6 @@ export function TransactionsPage() {
         </label>
         <Input label="С" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         <Input label="По" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-        <Button variant="secondary" onClick={load}>Найти</Button>
       </div>
 
       {loading ? (
@@ -113,11 +123,16 @@ export function TransactionsPage() {
       ) : sorted.length === 0 ? (
         <EmptyState text="Записей не найдено" />
       ) : (
-        <div className="cards">
+        <div className={`cards cards--${txType}`}>
           {sorted.map((tx) => (
             <TransactionCard
               key={tx.transaction_id}
               tx={tx}
+              categoryLimit={
+                tx.type === 'expense'
+                  ? categories.find((category) => category.name === tx.category_name)?.category_limit
+                  : undefined
+              }
               onEdit={() => { setEditing(tx); setModalOpen(true); }}
               onDelete={() => handleDelete(tx.transaction_id)}
             />
@@ -136,8 +151,8 @@ export function TransactionsPage() {
   initial={editing ? {
     amount: String(editing.amount),
     category_name: editing.category_name,
-    place_name: editing.place_name,
-    transaction_date: editing.transaction_datetime?.slice(0, 10),
+    place_name: editing.place_name ?? '',
+    transaction_date: toDateInputValue(editing.transaction_date),
     comment: editing.comment,
   } : undefined}
   onSubmit={handleSubmit}

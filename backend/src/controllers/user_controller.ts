@@ -52,7 +52,7 @@ export async function patchMyProfile(
             });
         }
 
-        const { username, email, password } = req.body;
+        const { username, email, password } = req.body ?? {};
 
         const data: {
             username?: string;
@@ -61,14 +61,29 @@ export async function patchMyProfile(
         } = {};
 
         if (username !== undefined) {
-            data.username = username;
+            if (typeof username !== "string" || !username.trim() || username.trim().length > 100) {
+                return res.status(400).json({
+                    message: "Некорректное имя пользователя",
+                });
+            }
+            data.username = username.trim();
         }
 
         if (email !== undefined) {
-            data.email = email;
+            if (typeof email !== "string" || !email.trim()) {
+                return res.status(400).json({
+                    message: "Некорректная почта",
+                });
+            }
+            data.email = email.trim().toLowerCase();
         }
 
         if (password !== undefined) {
+            if (typeof password !== "string" || password.length < 8 || password.length > 72) {
+                return res.status(400).json({
+                    message: "Пароль должен содержать от 8 до 72 символов",
+                });
+            }
             data.password_hash = await bcrypt.hash(password, 12);
         }
 
@@ -90,8 +105,14 @@ export async function patchMyProfile(
             message: "Профиль успешно обновлен",
             user: result,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
+
+        if (error?.code === "P2002") {
+            return res.status(409).json({
+                message: "Пользователь с такой почтой уже существует",
+            });
+        }
 
         return res.status(500).json({
             message: "Ошибка при обновлении профиля",

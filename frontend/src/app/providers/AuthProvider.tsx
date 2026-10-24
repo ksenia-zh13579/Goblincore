@@ -27,12 +27,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.getItem('gbc_access')
   );
 
-  const login = (u: User, access: string, refresh: string) => {
+  const login = (u: User, access: string, _refresh: string) => {
     setUser(u);
     setAccessToken(access);
     localStorage.setItem('gbc_user', JSON.stringify(u));
     localStorage.setItem('gbc_access', access);
-    localStorage.setItem('gbc_refresh', refresh);
   };
 
   const logout = () => {

@@ -7,6 +7,7 @@ import { ProfilePage } from '../../features/profile/components/ProfilePage';
 import { TransactionsPage } from '../../features/transactions/components/TransactionsPage';
 import { CategoriesPage } from '../../features/categories/components/CategoriesPage';
 import { StatisticsPage } from '../../features/statistics/components/StatisticsPage';
+import { PlacesPage } from '../../features/places/components/PlacesPage';
 
 function PrivateLayout({ children }: { children: JSX.Element }) {
   const { isAuthenticated } = useAuth();
@@ -69,6 +70,14 @@ export function AppRouter() {
         element={
           <PrivateLayout>
             <ProfilePage />
+          </PrivateLayout>
+        }
+      />
+      <Route
+        path="/places"
+        element={
+          <PrivateLayout>
+            <PlacesPage />
           </PrivateLayout>
         }
       />

@@ -26,13 +26,14 @@ export function Navbar() {
           {link('/categories/income', 'Категории доходов')}
           {link('/categories/expense', 'Категории расходов')}
           {link('/statistics', 'Статистика')}
+          {link('/places', 'Магазины')}
           {link('/profile', 'Профиль')}
         </nav>
         <div className="nav__actions">
           <button className="nav__icon" onClick={toggleTheme} title="Сменить тему">
             {theme === 'light' ? '🌙' : '☀️'}
           </button>
-          <button className="nav__icon" onClick={logout} title="Выйти">X</button>
+          <button className="nav__icon" onClick={logout} title="Выйти">Выйти</button>
         </div>
       </div>
     </header>
