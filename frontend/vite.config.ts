@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': env.VITE_BACKEND_URL || 'http://localhost:3000',
       },
+      allowedHosts: ['goblincorefrontend.relaxdev.ru']
     },
   };
 });
