@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { categoriesApi, Category } from '../api/categoriesApi';
 import { TransactionType } from '../../transactions/api/transactionsApi';
 import { useAuth } from '../../../app/providers/AuthProvider';
@@ -9,9 +8,6 @@ import { EmptyState } from '../../../shared/ui/EmptyState';
 import { CategoryForm } from './CategoryForm';
 
 export function CategoriesPage() {
-  const { type = 'expense' } = useParams<{ type: TransactionType }>();
-  const txType = type as TransactionType;
-  const withLimit = txType === 'expense';
   const { user } = useAuth();
 
   const [items, setItems] = useState<Category[]>([]);
@@ -20,19 +16,22 @@ export function CategoriesPage() {
 
   const load = async () => {
     if (!user) return;
-    const { data } = await categoriesApi.list(txType, user.user_id);
-    setItems(data);
+    const [income, expense] = await Promise.all([
+      categoriesApi.list('income', user.user_id),
+      categoriesApi.list('expense', user.user_id),
+    ]);
+    setItems([...income.data, ...expense.data]);
   };
 
-  useEffect(() => { load(); }, [txType, user]);
+  useEffect(() => { load(); }, [user]);
 
-  const handleSubmit = async (data: { name: string; limit?: number }) => {
+  const handleSubmit = async (data: { name: string; limit?: number; type: TransactionType }) => {
   if (!user) return;
   try {
     if (editing) {
-      await categoriesApi.update(txType, editing.category_id, data);
+      await categoriesApi.update(editing.category_type, editing.category_id, data);
     } else {
-      await categoriesApi.create(txType, data);
+      await categoriesApi.create(data.type, data);
     }
     setModalOpen(false);
     setEditing(null);
@@ -46,14 +45,16 @@ export function CategoriesPage() {
   const handleDelete = async (id: number) => {
     if (!user) return;
     if (!confirm('Удалить категорию? Если есть транзакции, она уйдёт в архив.')) return;
-    await categoriesApi.remove(txType, id, user.user_id);
+    const category = items.find((item) => item.category_id === id);
+    if (!category) return;
+    await categoriesApi.remove(category.category_type, id, user.user_id);
     await load();
   };
 
   return (
     <section className="page">
       <header className="page__header">
-        <h1>{withLimit ? 'Категории расходов' : 'Категории доходов'}</h1>
+        <h1>Категории</h1>
         <Button onClick={() => { setEditing(null); setModalOpen(true); }}>+ Добавить</Button>
       </header>
 
@@ -65,8 +66,8 @@ export function CategoriesPage() {
             <li key={c.category_id} className="category-row">
               <div>
                 <span className="category-row__name">{c.name}</span>
-                {withLimit && c.limit != null && (
-                  <span className="category-row__limit">Лимит: {c.limit.toLocaleString('ru-RU')} ₽</span>
+                {c.category_type === 'expense' && c.category_limit != null && (
+                  <span className="category-row__limit">Лимит: {Number(c.category_limit).toLocaleString('ru-RU')} ₽</span>
                 )}
               </div>
               <div className="category-row__actions">
@@ -84,7 +85,6 @@ export function CategoriesPage() {
         onClose={() => { setModalOpen(false); setEditing(null); }}
       >
         <CategoryForm
-          withLimit={withLimit}
           initial={editing ?? undefined}
           onSubmit={handleSubmit}
           onCancel={() => { setModalOpen(false); setEditing(null); }}

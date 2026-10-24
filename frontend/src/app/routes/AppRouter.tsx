@@ -37,12 +37,12 @@ export function AppRouter() {
         path="/"
         element={
           <PrivateLayout>
-            <Navigate to="/transactions/expense" replace />
+            <Navigate to="/transactions" replace />
           </PrivateLayout>
         }
       />
       <Route
-        path="/transactions/:type"
+        path="/transactions"
         element={
           <PrivateLayout>
             <TransactionsPage />
@@ -50,13 +50,15 @@ export function AppRouter() {
         }
       />
       <Route
-        path="/categories/:type"
+        path="/categories"
         element={
           <PrivateLayout>
             <CategoriesPage />
           </PrivateLayout>
         }
       />
+      <Route path="/transactions/:type" element={<Navigate to="/transactions" replace />} />
+      <Route path="/categories/:type" element={<Navigate to="/categories" replace />} />
       <Route
         path="/statistics"
         element={

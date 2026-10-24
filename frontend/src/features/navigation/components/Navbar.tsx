@@ -21,10 +21,8 @@ export function Navbar() {
           <span>Goblincore</span>
         </Link>
         <nav className="nav__links">
-          {link('/transactions/income', 'Доходы')}
-          {link('/transactions/expense', 'Расходы')}
-          {link('/categories/income', 'Категории доходов')}
-          {link('/categories/expense', 'Категории расходов')}
+          {link('/transactions', 'Транзакции')}
+          {link('/categories', 'Категории')}
           {link('/statistics', 'Статистика')}
           {link('/places', 'Магазины')}
           {link('/profile', 'Профиль')}
