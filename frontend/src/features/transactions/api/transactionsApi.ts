@@ -4,10 +4,11 @@ export type TransactionType = 'income' | 'expense';
 
 // То, что приходит с бэкенда
 export interface Transaction {
-  transaction_id: number;
-  place_name: string;
+  transaction_id: number | string;
+  place_name: string | null;
   category_name: string;
-  transaction_datetime: string; // или transaction_date
+  transaction_date: string;
+  type: TransactionType;
   amount: string | number;
   comment?: string;
 }
@@ -35,7 +36,6 @@ export interface PatchTransactionPayload {
 }
 
 export const transactionsApi = {
-  // 1. Получить список (бэкенд отдает все сразу, без разделения на income/expense)
   list: (
     type: TransactionType,
     userId: number, // На бэкенде userId не используется в query, он берется из токена
@@ -44,15 +44,9 @@ export const transactionsApi = {
     api.get<Transaction[]>('/api/transactions', {
       params: params, // Убрали user_id, так как бэкенд берет его из токена
     }).then(res => {
-      // Так как бэкенд отдает общий список, отфильтруем его на клиенте по типу
-      // (В идеале бэкенд должен это делать, но пока так)
       return {
         ...res,
-        data: res.data.filter(tx => {
-          // В идеале на бэкенде должна быть проверка типа, но если там нет поля type в ответе,
-          // придется фильтровать иначе. Пока возвращаем всё.
-          return true; 
-        })
+        data: res.data.filter((tx) => tx.type === type),
       }
     }),
 
@@ -61,10 +55,10 @@ export const transactionsApi = {
     api.post<Transaction>('/api/transactions', { ...data, type }),
 
   // 3. Обновить (без /expense в URL)
-  update: (type: TransactionType, id: number, data: PatchTransactionPayload) =>
+  update: (type: TransactionType, id: number | string, data: PatchTransactionPayload) =>
     api.patch<Transaction>(`/api/transactions/${id}`, data),
 
   // 4. Удалить (без /expense в URL)
-  remove: (type: TransactionType, id: number, userId: number) =>
+  remove: (type: TransactionType, id: number | string, userId: number) =>
     api.delete(`/api/transactions/${id}`), 
 };

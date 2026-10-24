@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth_routes";
 import profileRoutes from "./routes/user_routes";
 import transactionRoutes from "./routes/transactions_routes";
 import categoriesRoutes from "./routes/categories_routes";
+import placesRoutes from "./routes/places_routes";
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/categories", categoriesRoutes);
+app.use("/api/places", placesRoutes);
 
 // 7. ГЛОБАЛЬНЫЙ ОБРАБОТЧИК ОШИБОК (должен быть в самом конце)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

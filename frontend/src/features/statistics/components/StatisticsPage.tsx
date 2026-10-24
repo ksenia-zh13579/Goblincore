@@ -6,7 +6,7 @@ import {
 import { transactionsApi, Transaction } from '../../transactions/api/transactionsApi';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { Input } from '../../../shared/ui/Input';
-import { Breadcrumbs } from '../../navigation/components/Breadcrumbs';
+import { formatAmount } from '../../../shared/utils/format';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -24,14 +24,14 @@ export function StatisticsPage() {
     transactionsApi.list('expense', user.user_id, params).then((r) => setExpense(r.data));
   }, [user, startDate, endDate]);
 
-  const sum = (arr: Transaction[]) => arr.reduce((s, t) => s + t.amount, 0);
+  const sum = (arr: Transaction[]) => arr.reduce((s, t) => s + Number(t.amount), 0);
   const totalIncome = sum(income);
   const totalExpense = sum(expense);
   const balance = totalIncome - totalExpense;
 
   const groupByCategory = (arr: Transaction[]) =>
     arr.reduce<Record<string, number>>((acc, t) => {
-      acc[t.category_name] = (acc[t.category_name] || 0) + t.amount;
+      acc[t.category_name] = (acc[t.category_name] || 0) + Number(t.amount);
       return acc;
     }, {});
 
@@ -49,7 +49,6 @@ export function StatisticsPage() {
 
   return (
     <section className="page">
-      <Breadcrumbs items={[{ to: '/', label: 'Главная' }, { label: 'Статистика' }]} />
       <h1>Статистика</h1>
 
       <div className="toolbar">
@@ -60,16 +59,16 @@ export function StatisticsPage() {
       <div className="stats-cards">
         <div className="stat-card">
           <span className="stat-card__label">Доходы за период</span>
-          <span className="stat-card__value stat-card__value--income">{totalIncome.toLocaleString('ru-RU')} ₽</span>
+          <span className="stat-card__value stat-card__value--income">{formatAmount(totalIncome)} ₽</span>
         </div>
         <div className="stat-card">
           <span className="stat-card__label">Расходы за период</span>
-          <span className="stat-card__value stat-card__value--expense">{totalExpense.toLocaleString('ru-RU')} ₽</span>
+          <span className="stat-card__value stat-card__value--expense">{formatAmount(totalExpense)} ₽</span>
         </div>
         <div className="stat-card">
           <span className="stat-card__label">Текущий остаток</span>
           <span className={`stat-card__value ${balance >= 0 ? 'stat-card__value--income' : 'stat-card__value--expense'}`}>
-            {balance.toLocaleString('ru-RU')} ₽
+            {formatAmount(balance)} ₽
           </span>
         </div>
       </div>

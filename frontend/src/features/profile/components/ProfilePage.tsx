@@ -3,7 +3,6 @@ import { api } from '../../../shared/api/client';
 import { useAuth } from '../../../app/providers/AuthProvider';
 import { Input } from '../../../shared/ui/Input';
 import { Button } from '../../../shared/ui/Button';
-import { Breadcrumbs } from '../../navigation/components/Breadcrumbs';
 
 export function ProfilePage() {
   const { user, login, accessToken } = useAuth();
@@ -30,12 +29,20 @@ export function ProfilePage() {
       return;
     }
     try {
-      const { data } = await api.patch(`/profile/${user!.user_id}`, {
+      const { data } = await api.patch('/api/profile', {
         username,
         email,
-        ...(password ? { password_hash: password } : {}),
+        ...(password ? { password } : {}),
       });
-      login({ user_id: data.user_id, username: data.username, email: data.email }, accessToken!, localStorage.getItem('gbc_refresh')!);
+      login(
+        {
+          user_id: Number(data.user.user_id),
+          username: data.user.username,
+          email: data.user.email,
+        },
+        accessToken!,
+        '',
+      );
       setMessage('Профиль обновлён');
       setPassword('');
       setConfirm('');
@@ -46,7 +53,6 @@ export function ProfilePage() {
 
   return (
     <section className="page">
-      <Breadcrumbs items={[{ to: '/', label: 'Главная' }, { label: 'Профиль' }]} />
       <h1>Профиль</h1>
       <form className="form form--narrow" onSubmit={submit}>
         <Input label="Имя пользователя" value={username} onChange={(e) => setUsername(e.target.value)} />

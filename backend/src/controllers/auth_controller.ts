@@ -117,7 +117,7 @@ export async function register(
                 created_at: user.created_at,
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         if (
             typeof error === "object" &&
             error !== null &&
@@ -133,7 +133,6 @@ export async function register(
 
         return res.status(500).json({
             message: "Ошибка при создании аккаунта",
-            details: error.message // Показываем реальную ошибку
         });
     }
 }
@@ -187,12 +186,11 @@ if (!isPasswordValid) {
                 email: user.email,
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("ОШИБКА ВХОДА:", error);
 
         return res.status(500).json({
             message: "Ошибка при входе",
-            details: error.message // <--- ТЕПЕРЬ МЫ УВИДИМ ПРИЧИНУ
         });
     }
 }
@@ -240,12 +238,11 @@ export async function refresh(
         return res.status(200).json({
             accessToken,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("ОШИБКА ОБНОВЛЕНИЯ ТОКЕНА:", error);
 
         return res.status(500).json({
             message: "Ошибка при обновлении токена",
-            details: error.message
         });
     }
 }

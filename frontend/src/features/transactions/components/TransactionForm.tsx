@@ -27,11 +27,16 @@ export function TransactionForm({ type, categories, initial, onSubmit, onCancel 
     e.preventDefault();
     setError(null);
 
-    if (!categoryName.trim()) {
+    const normalizedCategoryName = categoryName.trim();
+    const existingCategory = categories.find(
+      (category) => category.name.trim() === normalizedCategoryName
+    );
+
+    if (!normalizedCategoryName) {
       setError('Введите название категории');
       return;
     }
-    if (type === 'expense' && !categoryLimit && !categories.find(c => c.name === categoryName)) {
+    if (type === 'expense' && !categoryLimit && !existingCategory) {
        setError('Для новой категории расходов нужно указать лимит (category_limit)');
        return;
     }
@@ -40,15 +45,26 @@ export function TransactionForm({ type, categories, initial, onSubmit, onCancel 
       return;
     }
 
-    await onSubmit({
-      type,
-      amount: Number(amount).toFixed(2),
-      category_name: categoryName.trim(),
-      category_limit: categoryLimit ? Number(categoryLimit).toFixed(2) : undefined,
-      place_name: placeName.trim(),
-      transaction_date: date,
-      comment,
-    });
+    try {
+      await onSubmit({
+        type,
+        amount: Number(amount).toFixed(2),
+        category_name: normalizedCategoryName,
+        category_limit: existingCategory
+          ? undefined
+          : categoryLimit
+            ? Number(categoryLimit).toFixed(2)
+            : undefined,
+        place_name: placeName.trim(),
+        transaction_date: date,
+        comment,
+      });
+    } catch (submitError) {
+      const message =
+        (submitError as { response?: { data?: { message?: string } } }).response?.data?.message ??
+        'Не удалось сохранить запись';
+      setError(message);
+    }
   };
 
   return (
@@ -80,7 +96,9 @@ export function TransactionForm({ type, categories, initial, onSubmit, onCancel 
       </label>
 
       {/* Если категория новая и это расход, просим лимит */}
-      {type === 'expense' && !categories.find(c => c.name === categoryName) && (
+      {type === 'expense' && !categories.some(
+        (category) => category.name.trim() === categoryName.trim()
+      ) && (
         <Input
           label="Лимит на месяц для новой категории, ₽"
           type="number"
