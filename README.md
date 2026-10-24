@@ -82,7 +82,6 @@ bash
 cp .env.example .env
 Откройте созданный файл backend/.env и проверьте значения. Они должны быть такими:
 
-env
 # Пароль и порт совпадают с настройками в docker-compose.yml
 DATABASE_URL="postgresql://postgres:postgrespassword@localhost:5433/finance_tracker?schema=public"
 
@@ -128,6 +127,40 @@ Vite напишет в терминале: ➜ Local: http://localhost:5173/
 
 # ✅ Шаг 5. Проверка работы
 Откройте в браузере: http://localhost:5173
+
+## 🐳 Запуск всего проекта через Docker Compose
+
+Для запуска PostgreSQL, backend и frontend в контейнерах выполните из корня
+проекта:
+
+```powershell
+docker compose up --build
+```
+
+После запуска приложение будет доступно по адресам:
+
+- frontend: http://localhost:5175
+- backend: http://localhost:3000
+- Swagger: http://localhost:3000/api-docs
+- PostgreSQL: `localhost:5434`
+
+В контейнере backend Prisma автоматически применяет схему командой
+`npx prisma db push`, поэтому отдельно запускать Prisma не нужно.
+
+Остановить контейнеры:
+
+```powershell
+docker compose down
+```
+
+Удалить контейнеры вместе с данными PostgreSQL:
+
+```powershell
+docker compose down -v
+```
+
+Для production-подобного запуска рекомендуется заменить JWT-секреты через
+переменные окружения `ACCESS_TOKEN_SECRET` и `REFRESH_TOKEN_SECRET`.
 
 Нажмите «Зарегистрироваться».
 

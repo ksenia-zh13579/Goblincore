@@ -41,7 +41,7 @@ export const transactionsApi = {
     userId: number, // На бэкенде userId не используется в query, он берется из токена
     params: { start_date?: string; end_date?: string; q?: string; page?: number; limit?: number } = {}
   ) =>
-    api.get<Transaction[]>('/api/transactions', {
+    api.get<Transaction[]>('/transactions', {
       params: params, // Убрали user_id, так как бэкенд берет его из токена
     }).then(res => {
       return {
@@ -52,13 +52,13 @@ export const transactionsApi = {
 
   // 2. Создать (без /expense в URL, тип внутри body)
   create: (type: TransactionType, data: TransactionPayload) =>
-    api.post<Transaction>('/api/transactions', { ...data, type }),
+    api.post<Transaction>('/transactions', { ...data, type }),
 
   // 3. Обновить (без /expense в URL)
   update: (type: TransactionType, id: number | string, data: PatchTransactionPayload) =>
-    api.patch<Transaction>(`/api/transactions/${id}`, data),
+    api.patch<Transaction>(`/transactions/${id}`, data),
 
   // 4. Удалить (без /expense в URL)
   remove: (type: TransactionType, id: number | string, userId: number) =>
-    api.delete(`/api/transactions/${id}`), 
+    api.delete(`/transactions/${id}`),
 };

@@ -17,13 +17,13 @@ export interface CategoryPayload {
 export const categoriesApi = {
   // Получаем список с фильтром по типу (бэкенд поддерживает ?type=expense)
   list: (type: TransactionType, userId?: number) =>
-    api.get<Category[]>('/api/categories', {
+    api.get<Category[]>('/categories', {
       params: { type } // Передаем ?type=income или ?type=expense
     }),
 
   // Создание категории
   create: (type: TransactionType, data: { name: string; limit?: number }) =>
-    api.post<Category>('/api/categories', {
+    api.post<Category>('/categories', {
       name: data.name,
       category_type: type,
       // Если это расход, передаем лимит. Бэкенд требует его для новых категорий расходов.
@@ -32,12 +32,12 @@ export const categoriesApi = {
 
   // Обновление категории (тип менять нельзя)
   update: (type: TransactionType, id: number, data: { name: string; limit?: number }) =>
-    api.patch<Category>(`/api/categories/${id}`, {
+    api.patch<Category>(`/categories/${id}`, {
       name: data.name,
       ...(type === 'expense' && data.limit ? { category_limit: String(data.limit) } : {})
     }),
 
   // Удаление категории
   remove: (type: TransactionType, id: number, userId?: number) =>
-    api.delete(`/api/categories/${id}`),
+    api.delete(`/categories/${id}`),
 };
