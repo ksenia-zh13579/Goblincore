@@ -27,7 +27,7 @@ export function TransactionCard({ tx, categoryLimit, onEdit, onDelete }: Props) 
             )}
           </span>
         </div>
-        <span className="card__amount">
+        <span className={`card__amount${tx.type === 'income' ? ' card__amount--income' : ''}`}>
           {tx.type === 'income' ? '+' : '−'}{formatAmount(tx.amount)} ₽
         </span>
       </header>
