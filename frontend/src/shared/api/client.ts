@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+const configuredApiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const apiBaseUrl = configuredApiUrl.endsWith('/api')
+  ? configuredApiUrl
+  : `${configuredApiUrl || ''}/api`;
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
@@ -23,12 +28,12 @@ api.interceptors.response.use(
       error.response?.status === 401 &&
       original &&
       !original._retry &&
-      !original.url?.includes('/api/auth/refresh')
+      !original.url?.includes('/auth/refresh')
     ) {
       original._retry = true;
 
       try {
-        const { data } = await api.post<{ accessToken: string }>('/api/auth/refresh');
+        const { data } = await api.post<{ accessToken: string }>('/auth/refresh');
         localStorage.setItem('gbc_access', data.accessToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);

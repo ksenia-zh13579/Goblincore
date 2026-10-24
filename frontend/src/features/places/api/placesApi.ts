@@ -6,5 +6,5 @@ export interface Place {
 }
 
 export const placesApi = {
-  list: () => api.get<Place[]>('/api/places'),
+  list: () => api.get<Place[]>('/places'),
 };

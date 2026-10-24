@@ -29,7 +29,7 @@ export function ProfilePage() {
       return;
     }
     try {
-      const { data } = await api.patch('/api/profile', {
+      const { data } = await api.patch('/profile', {
         username,
         email,
         ...(password ? { password } : {}),
